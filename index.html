@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Silence Splitter</title>
+    <meta name="description" content="Công cụ cắt audio theo khoảng trống tự động, xuất WAV 22050Hz">
+    <link rel="icon" type="image/x-icon" href="https://hanhdeptrai242.github.io/dataset-cut-audio/img/icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="8" fill="url(#grad1)"/>
+                        <path d="M8 20V12M12 22V10M16 24V8M20 22V10M24 20V12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        <defs>
+                            <linearGradient id="grad1" x1="0" y1="0" x2="32" y2="32">
+                                <stop stop-color="#6366f1"/>
+                                <stop offset="1" stop-color="#a855f7"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div>
+                    <h1>Audio Silence Splitter</h1>
+                    <p class="subtitle">Cắt audio theo khoảng trống • Xuất WAV 22050Hz</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Upload Section -->
+        <section class="section" id="uploadSection">
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">
+                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                        <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="2" stroke-dasharray="6 4" opacity="0.4"/>
+                        <path d="M32 20V44M24 28L32 20L40 28" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h3>Kéo thả file WAV vào đây</h3>
+                <p>hoặc nhấn để chọn file</p>
+                <input type="file" id="fileInput" accept=".wav,audio/wav" hidden>
+            </div>
+            <div class="file-info" id="fileInfo" style="display:none">
+                <div class="file-badge">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M4 14V6M7 16V4M10 18V2M13 16V4M16 14V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span id="fileName"></span>
+                    <span class="file-size" id="fileSize"></span>
+                    <button class="btn-remove" id="btnRemove" title="Xóa file">✕</button>
+                </div>
+                <div class="audio-info-row">
+                    <span class="info-chip" id="infoDuration"></span>
+                    <span class="info-chip" id="infoSampleRate"></span>
+                    <span class="info-chip" id="infoChannels"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section class="section" id="settingsSection" style="display:none">
+            <h2 class="section-title">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M10 1V4M10 16V19M1 10H4M16 10H19M3.5 3.5L5.5 5.5M14.5 14.5L16.5 16.5M16.5 3.5L14.5 5.5M5.5 14.5L3.5 16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                Cài đặt cắt audio
+            </h2>
+            <div class="settings-grid">
+                <div class="setting-card">
+                    <label for="silenceDuration">Thời gian trống tối thiểu</label>
+                    <div class="input-group">
+                        <input type="number" id="silenceDuration" value="4" min="0.5" max="30" step="0.5">
+                        <span class="input-suffix">giây</span>
+                    </div>
+                    <p class="setting-hint">Khoảng lặng ≥ giá trị này sẽ bị cắt bỏ</p>
+                </div>
+                <div class="setting-card">
+                    <label for="expectedSegments">Số đoạn audio mong muốn</label>
+                    <div class="input-group">
+                        <input type="number" id="expectedSegments" value="100" min="1" max="10000" step="1">
+                        <span class="input-suffix">đoạn</span>
+                    </div>
+                    <div class="csv-upload-row">
+                        <button class="btn-csv-upload" id="btnCsvUpload" type="button">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                <path d="M7 1V9M4 6L7 9L10 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M1 10V12C1 12.6 1.4 13 2 13H12C12.6 13 13 12.6 13 12V10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Tải CSV để đếm
+                        </button>
+                        <span class="csv-status" id="csvStatus"></span>
+                        <input type="file" id="csvFileInput" accept=".csv,text/csv" hidden>
+                    </div>
+                    <p class="setting-hint">Nhập số hoặc tải file CSV để tự đếm dòng</p>
+                </div>
+                <div class="setting-card">
+                    <label for="silenceThreshold">Ngưỡng âm lượng (silence)</label>
+                    <div class="input-group">
+                        <input type="number" id="silenceThreshold" value="-40" min="-80" max="-10" step="1">
+                        <span class="input-suffix">dB</span>
+                    </div>
+                    <p class="setting-hint">Âm lượng dưới ngưỡng này = im lặng</p>
+                </div>
+                <div class="setting-card">
+                    <label>Tần số xuất</label>
+                    <div class="input-group">
+                        <input type="text" value="22050" disabled class="disabled-input">
+                        <span class="input-suffix">Hz</span>
+                    </div>
+                    <p class="setting-hint">Tất cả file xuất sẽ là 22050 Hz</p>
+                </div>
+            </div>
+            <div class="action-bar">
+                <button class="btn-primary" id="btnAnalyze">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M2 9H4L6 4L9 14L12 7L14 9H16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Phân tích & Cắt Audio
+                </button>
+            </div>
+        </section>
+
+        <!-- Progress Section -->
+        <section class="section" id="progressSection" style="display:none">
+            <div class="progress-container">
+                <div class="progress-header">
+                    <div class="spinner"></div>
+                    <span id="progressText">Đang phân tích...</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <p class="progress-detail" id="progressDetail"></p>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="section" id="resultsSection" style="display:none">
+            <div class="results-header">
+                <h2 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M7 10L9 12L13 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                    Kết quả
+                </h2>
+                <div class="results-stats">
+                    <span class="stat-badge" id="statSegments"></span>
+                    <span class="stat-badge" id="statMatch"></span>
+                </div>
+            </div>
+
+            <div class="results-actions">
+                <button class="btn-primary" id="btnDownloadAll">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M9 2V12M5 8L9 12L13 8M3 15H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Tải tất cả (ZIP)
+                </button>
+                <span class="download-hint" id="downloadHint"></span>
+            </div>
+
+            <div class="segments-list" id="segmentsList"></div>
+        </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
