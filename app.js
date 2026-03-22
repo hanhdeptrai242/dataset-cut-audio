@@ -1,3 +1,5 @@
+// app.js
+
 // ===== Audio Silence Splitter App =====
 (() => {
     'use strict';
@@ -588,5 +590,172 @@
 
     function sleep(ms) {
         return new Promise(r => setTimeout(r, ms));
+    }
+})();
+
+// ===== CSV Dataset Generator Module =====
+(() => {
+    'use strict';
+
+    // State
+    let textLines = [];
+
+    // DOM Elements
+    const tabBtnFile = document.getElementById('tabBtnFile');
+    const tabBtnText = document.getElementById('tabBtnText');
+    const tabFile = document.getElementById('tabFile');
+    const tabText = document.getElementById('tabText');
+    const txtFileInput = document.getElementById('txtFileInput');
+    const txtUploadZone = document.getElementById('txtUploadZone');
+    const txtFileStatus = document.getElementById('txtFileStatus');
+    const textAreaInput = document.getElementById('textAreaInput');
+    const textAreaCount = document.getElementById('textAreaCount');
+    const voiceNameInput = document.getElementById('voiceNameInput');
+    const lineCountBadge = document.getElementById('lineCountBadge');
+    const lineCountEmpty = document.getElementById('lineCountEmpty');
+    const btnGenerateCsv = document.getElementById('btnGenerateCsv');
+    const csvPreviewSection = document.getElementById('csvPreviewSection');
+    const csvPreviewBody = document.getElementById('csvPreviewBody');
+    const csvPreviewTotal = document.getElementById('csvPreviewTotal');
+    const btnDownloadCsv = document.getElementById('btnDownloadCsv');
+
+    // Tab switching
+    tabBtnFile.addEventListener('click', () => {
+        tabBtnFile.classList.add('active');
+        tabBtnText.classList.remove('active');
+        tabFile.style.display = 'block';
+        tabText.style.display = 'none';
+    });
+
+    tabBtnText.addEventListener('click', () => {
+        tabBtnText.classList.add('active');
+        tabBtnFile.classList.remove('active');
+        tabText.style.display = 'block';
+        tabFile.style.display = 'none';
+    });
+
+    // TXT File Upload
+    txtUploadZone.addEventListener('click', () => txtFileInput.click());
+
+    txtUploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        txtUploadZone.classList.add('dragover');
+    });
+
+    txtUploadZone.addEventListener('dragleave', () => {
+        txtUploadZone.classList.remove('dragover');
+    });
+
+    txtUploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        txtUploadZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) handleTxtFile(file);
+    });
+
+    txtFileInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) handleTxtFile(e.target.files[0]);
+    });
+
+    function handleTxtFile(file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const text = ev.target.result;
+            const lines = text.split('\n').filter(line => line.trim().length > 0);
+            textLines = lines;
+            updateLineCount(lines.length);
+            txtFileStatus.className = 'csv-gen-file-status success';
+            txtFileStatus.textContent = `✓ ${file.name} — ${lines.length} dòng hợp lệ`;
+            txtUploadZone.classList.add('has-file');
+        };
+        reader.onerror = () => {
+            txtFileStatus.className = 'csv-gen-file-status error';
+            txtFileStatus.textContent = '✕ Không đọc được file';
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    // Textarea input
+    textAreaInput.addEventListener('input', () => {
+        const text = textAreaInput.value;
+        const lines = text.split('\n').filter(line => line.trim().length > 0);
+        textLines = lines;
+        updateLineCount(lines.length);
+        textAreaCount.textContent = `${lines.length} dòng hợp lệ`;
+    });
+
+    function updateLineCount(count) {
+        lineCountBadge.textContent = `${count} dòng`;
+        lineCountBadge.style.display = count > 0 ? 'inline-flex' : 'none';
+        lineCountEmpty.style.display = count > 0 ? 'none' : 'inline';
+        btnGenerateCsv.disabled = count === 0;
+    }
+
+    // Generate CSV
+    btnGenerateCsv.addEventListener('click', () => {
+        const voiceName = voiceNameInput.value.trim();
+        if (!voiceName) {
+            voiceNameInput.focus();
+            voiceNameInput.style.borderColor = 'var(--error)';
+            setTimeout(() => voiceNameInput.style.borderColor = '', 2000);
+            return;
+        }
+
+        if (textLines.length === 0) return;
+
+        // Build preview
+        csvPreviewBody.innerHTML = '';
+        const maxPreview = Math.min(textLines.length, 10);
+
+        for (let i = 0; i < maxPreview; i++) {
+            const row = document.createElement('div');
+            row.className = 'csv-preview-row';
+            const audioName = `audio_${String(i + 1).padStart(4, '0')}.wav`;
+            row.innerHTML = `
+                <span class="csv-col csv-col-audio">${audioName}</span>
+                <span class="csv-col-sep">|</span>
+                <span class="csv-col csv-col-voice">${escapeHtml(voiceName)}</span>
+                <span class="csv-col-sep">|</span>
+                <span class="csv-col csv-col-text">${escapeHtml(textLines[i])}</span>
+            `;
+            csvPreviewBody.appendChild(row);
+        }
+
+        if (textLines.length > maxPreview) {
+            const more = document.createElement('div');
+            more.className = 'csv-preview-more';
+            more.textContent = `... và ${textLines.length - maxPreview} dòng nữa`;
+            csvPreviewBody.appendChild(more);
+        }
+
+        csvPreviewTotal.textContent = `Tổng cộng: ${textLines.length} dòng`;
+        csvPreviewSection.style.display = 'block';
+        csvPreviewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    // Download CSV
+    btnDownloadCsv.addEventListener('click', () => {
+        const voiceName = voiceNameInput.value.trim();
+        if (!voiceName || textLines.length === 0) return;
+
+        let csvContent = '';
+        for (let i = 0; i < textLines.length; i++) {
+            const audioName = `audio_${String(i + 1).padStart(4, '0')}.wav`;
+            csvContent += `${audioName}|${voiceName}|${textLines[i]}\n`;
+        }
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${voiceName}_dataset_${textLines.length}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
 })();
