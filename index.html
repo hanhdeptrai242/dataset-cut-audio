@@ -1,299 +1,282 @@
-<!-- index.html -->
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Silence Splitter</title>
-    <meta name="description" content="Công cụ cắt audio theo khoảng trống tự động, xuất WAV 22050Hz">
+    <title>Audio Tools — Bộ công cụ xử lý audio & dataset</title>
+    <meta name="description" content="Bộ công cụ: Cắt audio theo khoảng trống, tạo CSV dataset, thêm thẻ số vào văn bản">
     <link rel="icon" type="image/x-icon" href="https://hanhdeptrai242.github.io/dataset-cut-audio/icon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
+    <div class="app-shell">
         <!-- Header -->
         <header class="app-header">
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                        <rect width="32" height="32" rx="8" fill="url(#grad1)"/>
-                        <path d="M8 20V12M12 22V10M16 24V8M20 22V10M24 20V12" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-                        <defs>
-                            <linearGradient id="grad1" x1="0" y1="0" x2="32" y2="32">
-                                <stop stop-color="#6366f1"/>
-                                <stop offset="1" stop-color="#a855f7"/>
-                            </linearGradient>
-                        </defs>
+            <div class="header-left">
+                <div class="logo-mark">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                        <rect width="28" height="28" rx="7" fill="#1a1a18"/>
+                        <path d="M7 17V11M10 19V9M14 21V7M18 19V9M21 17V11" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
                     </svg>
                 </div>
                 <div>
-                    <h1>Audio Silence Splitter</h1>
-                    <p class="subtitle">Cắt audio theo khoảng trống • Xuất WAV 22050Hz</p>
+                    <h1 class="app-title">Audio Tools</h1>
+                    <p class="app-subtitle">Bộ công cụ xử lý audio & dataset</p>
                 </div>
             </div>
         </header>
 
-        <!-- Upload Section -->
-        <section class="section" id="uploadSection">
-            <div class="upload-zone" id="uploadZone">
-                <div class="upload-icon">
-                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-                        <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="2" stroke-dasharray="6 4" opacity="0.4"/>
-                        <path d="M32 20V44M24 28L32 20L40 28" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-                <h3>Kéo thả file WAV vào đây</h3>
-                <p>hoặc nhấn để chọn file</p>
-                <input type="file" id="fileInput" accept=".wav,audio/wav" hidden>
-            </div>
-            <div class="file-info" id="fileInfo" style="display:none">
-                <div class="file-badge">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M4 14V6M7 16V4M10 18V2M13 16V4M16 14V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg>
-                    <span id="fileName"></span>
-                    <span class="file-size" id="fileSize"></span>
-                    <button class="btn-remove" id="btnRemove" title="Xóa file">✕</button>
-                </div>
-                <div class="audio-info-row">
-                    <span class="info-chip" id="infoDuration"></span>
-                    <span class="info-chip" id="infoSampleRate"></span>
-                    <span class="info-chip" id="infoChannels"></span>
-                </div>
-            </div>
-        </section>
+        <!-- Main Tabs -->
+        <nav class="main-tabs" id="mainTabs">
+            <button class="main-tab active" data-tab="splitter">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8H4L5.5 4L8 12L10.5 6L12 8H14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Cắt Audio
+            </button>
+            <button class="main-tab" data-tab="csv">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 2.5H10L13.5 6V13.5H2.5V2.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M10 2.5V6H13.5" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M5 9H11M5 11.5H9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                Tạo CSV
+            </button>
+            <button class="main-tab" data-tab="tagger">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4H14M2 8H12M2 12H10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="13" cy="11" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M13 9.8V11H14" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
+                Thêm Thẻ Số
+            </button>
+        </nav>
 
-        <!-- Settings Section -->
-        <section class="section" id="settingsSection" style="display:none">
-            <h2 class="section-title">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M10 1V4M10 16V19M1 10H4M16 10H19M3.5 3.5L5.5 5.5M14.5 14.5L16.5 16.5M16.5 3.5L14.5 5.5M5.5 14.5L3.5 16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-                Cài đặt cắt audio
-            </h2>
-            <div class="settings-grid">
-                <div class="setting-card">
-                    <label for="silenceDuration">Thời gian trống tối thiểu</label>
-                    <div class="input-group">
-                        <input type="number" id="silenceDuration" value="4" min="0.5" max="30" step="0.5">
-                        <span class="input-suffix">giây</span>
-                    </div>
-                    <p class="setting-hint">Khoảng lặng ≥ giá trị này sẽ bị cắt bỏ</p>
+        <!-- ============ TAB 1: AUDIO SPLITTER ============ -->
+        <div class="tab-panel active" id="panel-splitter">
+            <div class="card">
+                <div class="card-head">
+                    <h2>Cắt audio theo khoảng trống</h2>
+                    <p class="card-desc">Tải file WAV lên — tự động phát hiện khoảng lặng và cắt thành từng đoạn • Xuất WAV 22050Hz</p>
                 </div>
-                <div class="setting-card">
-                    <label for="expectedSegments">Số đoạn audio mong muốn</label>
-                    <div class="input-group">
-                        <input type="number" id="expectedSegments" value="100" min="1" max="10000" step="1">
-                        <span class="input-suffix">đoạn</span>
+
+                <!-- Upload -->
+                <div class="drop-zone" id="uploadZone">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="1.5" stroke-dasharray="5 3.5" opacity="0.35"/><path d="M24 16V32M18 22L24 16L30 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <p class="drop-main">Kéo thả file <strong>WAV</strong> vào đây</p>
+                    <p class="drop-sub">hoặc nhấn để chọn file</p>
+                    <input type="file" id="fileInput" accept=".wav,audio/wav" hidden>
+                </div>
+
+                <div class="file-info" id="fileInfo" style="display:none">
+                    <div class="file-chip">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 11V5M5.5 13V3M8 14.5V1.5M10.5 13V3M12.5 11V5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                        <span id="fileName"></span>
+                        <span class="file-size-tag" id="fileSize"></span>
+                        <button class="btn-icon" id="btnRemove" title="Xóa file">✕</button>
                     </div>
-                    <div class="csv-upload-row">
-                        <button class="btn-csv-upload" id="btnCsvUpload" type="button">
-                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                <path d="M7 1V9M4 6L7 9L10 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M1 10V12C1 12.6 1.4 13 2 13H12C12.6 13 13 12.6 13 12V10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            Tải CSV để đếm
+                    <div class="chip-row">
+                        <span class="chip" id="infoDuration"></span>
+                        <span class="chip" id="infoSampleRate"></span>
+                        <span class="chip" id="infoChannels"></span>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="settings-panel" id="settingsSection" style="display:none">
+                    <h3 class="section-label">Cài đặt</h3>
+                    <div class="grid-2">
+                        <div class="field-card">
+                            <label for="silenceDuration">Thời gian trống tối thiểu</label>
+                            <div class="input-wrap">
+                                <input type="number" id="silenceDuration" value="4" min="0.5" max="30" step="0.5">
+                                <span class="input-unit">giây</span>
+                            </div>
+                            <p class="field-hint">Khoảng lặng ≥ giá trị này sẽ bị cắt bỏ</p>
+                        </div>
+                        <div class="field-card">
+                            <label for="expectedSegments">Số đoạn mong muốn</label>
+                            <div class="input-wrap">
+                                <input type="number" id="expectedSegments" value="100" min="1" max="10000" step="1">
+                                <span class="input-unit">đoạn</span>
+                            </div>
+                            <div class="csv-upload-row">
+                                <button class="btn-sm" id="btnCsvUpload" type="button">
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1V8M3.5 5.5L6 8L8.5 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 8.5V10.5C1 10.8 1.2 11 1.5 11H10.5C10.8 11 11 10.8 11 10.5V8.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                                    Tải CSV để đếm
+                                </button>
+                                <span class="csv-status" id="csvStatus"></span>
+                                <input type="file" id="csvFileInput" accept=".csv,text/csv" hidden>
+                            </div>
+                            <p class="field-hint">Nhập số hoặc tải CSV để tự đếm dòng</p>
+                        </div>
+                        <div class="field-card">
+                            <label for="silenceThreshold">Ngưỡng âm lượng (silence)</label>
+                            <div class="input-wrap">
+                                <input type="number" id="silenceThreshold" value="-40" min="-80" max="-10" step="1">
+                                <span class="input-unit">dB</span>
+                            </div>
+                            <p class="field-hint">Âm lượng dưới ngưỡng này = im lặng</p>
+                        </div>
+                        <div class="field-card">
+                            <label>Tần số xuất</label>
+                            <div class="input-wrap">
+                                <input type="text" value="22050" disabled class="disabled">
+                                <span class="input-unit">Hz</span>
+                            </div>
+                            <p class="field-hint">Tất cả file xuất sẽ là 22050 Hz</p>
+                        </div>
+                    </div>
+                    <div class="action-center">
+                        <button class="btn-primary" id="btnAnalyze">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8H3.5L5 3.5L8 12.5L11 6L12.5 8H14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Phân tích &amp; Cắt Audio
                         </button>
-                        <span class="csv-status" id="csvStatus"></span>
-                        <input type="file" id="csvFileInput" accept=".csv,text/csv" hidden>
-                    </div>
-                    <p class="setting-hint">Nhập số hoặc tải file CSV để tự đếm dòng</p>
-                </div>
-                <div class="setting-card">
-                    <label for="silenceThreshold">Ngưỡng âm lượng (silence)</label>
-                    <div class="input-group">
-                        <input type="number" id="silenceThreshold" value="-40" min="-80" max="-10" step="1">
-                        <span class="input-suffix">dB</span>
-                    </div>
-                    <p class="setting-hint">Âm lượng dưới ngưỡng này = im lặng</p>
-                </div>
-                <div class="setting-card">
-                    <label>Tần số xuất</label>
-                    <div class="input-group">
-                        <input type="text" value="22050" disabled class="disabled-input">
-                        <span class="input-suffix">Hz</span>
-                    </div>
-                    <p class="setting-hint">Tất cả file xuất sẽ là 22050 Hz</p>
-                </div>
-            </div>
-            <div class="action-bar">
-                <button class="btn-primary" id="btnAnalyze">
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                        <path d="M2 9H4L6 4L9 14L12 7L14 9H16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Phân tích &amp; Cắt Audio
-                </button>
-            </div>
-        </section>
-
-        <!-- Progress Section -->
-        <section class="section" id="progressSection" style="display:none">
-            <div class="progress-container">
-                <div class="progress-header">
-                    <div class="spinner"></div>
-                    <span id="progressText">Đang phân tích...</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar" id="progressBar"></div>
-                </div>
-                <p class="progress-detail" id="progressDetail"></p>
-            </div>
-        </section>
-
-        <!-- Results Section -->
-        <section class="section" id="resultsSection" style="display:none">
-            <div class="results-header">
-                <h2 class="section-title">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M7 10L9 12L13 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
-                    </svg>
-                    Kết quả
-                </h2>
-                <div class="results-stats">
-                    <span class="stat-badge" id="statSegments"></span>
-                    <span class="stat-badge" id="statMatch"></span>
-                </div>
-            </div>
-
-            <div class="results-actions">
-                <button class="btn-primary" id="btnDownloadAll">
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                        <path d="M9 2V12M5 8L9 12L13 8M3 15H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Tải tất cả (ZIP)
-                </button>
-                <span class="download-hint" id="downloadHint"></span>
-            </div>
-
-            <div class="segments-list" id="segmentsList"></div>
-        </section>
-
-        <!-- CSV Dataset Generator Section -->
-        <section class="section csv-gen-section" id="csvGenSection">
-            <div class="csv-gen-divider">
-                <span class="csv-gen-divider-line"></span>
-                <span class="csv-gen-divider-text">CÔNG CỤ KHÁC</span>
-                <span class="csv-gen-divider-line"></span>
-            </div>
-
-            <h2 class="section-title">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path d="M3 3H13L17 7V17H3V3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-                    <path d="M13 3V7H17" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-                    <path d="M6 10H14M6 13H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-                Tạo CSV Dataset
-            </h2>
-            <p class="csv-gen-desc">Tạo file CSV dataset cho Piper TTS với format: <code>audio_XXXX.wav|voicename|text</code></p>
-
-            <!-- Tab Switcher -->
-            <div class="csv-gen-tabs">
-                <button class="csv-gen-tab active" id="tabBtnFile">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M7 1V9M4 6L7 9L10 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M1 10V12C1 12.6 1.4 13 2 13H12C12.6 13 13 12.6 13 12V10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Tải file TXT
-                </button>
-                <button class="csv-gen-tab" id="tabBtnText">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M2 3H12M2 6H10M2 9H12M2 12H8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-                    </svg>
-                    Nhập text
-                </button>
-            </div>
-
-            <!-- Tab: Upload TXT File -->
-            <div class="csv-gen-tab-content" id="tabFile">
-                <div class="csv-gen-upload-zone" id="txtUploadZone">
-                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                        <rect x="8" y="4" width="24" height="32" rx="3" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M14 14H26M14 18H26M14 22H22" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
-                        <circle cx="30" cy="30" r="9" fill="var(--bg-primary)" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M30 25V35M25 30L30 25L35 30" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <p>Kéo thả hoặc nhấn để chọn file <strong>.txt</strong></p>
-                    <span class="csv-gen-upload-hint">Mỗi dòng = 1 câu text</span>
-                </div>
-                <input type="file" id="txtFileInput" accept=".txt,text/plain" hidden>
-                <div class="csv-gen-file-status" id="txtFileStatus"></div>
-            </div>
-
-            <!-- Tab: Textarea Input -->
-            <div class="csv-gen-tab-content" id="tabText" style="display:none">
-                <textarea class="csv-gen-textarea" id="textAreaInput" placeholder="Nhập text ở đây, mỗi dòng một câu...
-Ví dụ:
-Xin chào, đây là dòng thứ nhất
-Đây là dòng thứ hai
-Mỗi dòng sẽ tương ứng với một file audio" rows="8"></textarea>
-                <div class="csv-gen-textarea-footer">
-                    <span class="csv-gen-textarea-count" id="textAreaCount">0 dòng hợp lệ</span>
-                </div>
-            </div>
-
-            <!-- Voice Name + Line Count -->
-            <div class="csv-gen-config">
-                <div class="csv-gen-config-card">
-                    <label for="voiceNameInput">Tên Voice</label>
-                    <div class="input-group">
-                        <input type="text" id="voiceNameInput" placeholder="Ví dụ: ngochuyen" autocomplete="off">
-                    </div>
-                    <p class="setting-hint">Tên voice sẽ xuất hiện ở cột thứ 2 trong CSV</p>
-                </div>
-                <div class="csv-gen-config-card csv-gen-summary">
-                    <div class="csv-gen-summary-label">Số dòng hợp lệ</div>
-                    <div class="csv-gen-summary-value">
-                        <span class="csv-gen-line-badge" id="lineCountBadge" style="display:none">0 dòng</span>
-                        <span class="csv-gen-summary-empty" id="lineCountEmpty">Chưa có dữ liệu</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Generate Button -->
-            <div class="action-bar">
-                <button class="btn-primary btn-generate-csv" id="btnGenerateCsv" disabled>
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                        <path d="M3 3H11L15 7V15H3V3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-                        <path d="M11 3V7H15" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-                        <path d="M6 10H12M6 12.5H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    </svg>
-                    Tạo CSV Dataset
-                </button>
-            </div>
-
-            <!-- CSV Preview -->
-            <div class="csv-gen-preview" id="csvPreviewSection" style="display:none">
-                <h3 class="csv-gen-preview-title">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M2 4H14M2 8H14M2 12H14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-                    </svg>
-                    Xem trước CSV
-                </h3>
-                <div class="csv-gen-preview-table">
-                    <div class="csv-preview-header">
-                        <span class="csv-col csv-col-audio">File Audio</span>
-                        <span class="csv-col-sep">|</span>
-                        <span class="csv-col csv-col-voice">Voice</span>
-                        <span class="csv-col-sep">|</span>
-                        <span class="csv-col csv-col-text">Text</span>
+                <!-- Progress -->
+                <div class="progress-wrap" id="progressSection" style="display:none">
+                    <div class="progress-head">
+                        <div class="spinner-sm"></div>
+                        <span id="progressText">Đang phân tích...</span>
                     </div>
-                    <div class="csv-preview-body" id="csvPreviewBody"></div>
+                    <div class="progress-track"><div class="progress-fill" id="progressBar"></div></div>
+                    <p class="progress-detail" id="progressDetail"></p>
                 </div>
-                <div class="csv-gen-preview-footer">
-                    <span class="csv-gen-preview-total" id="csvPreviewTotal"></span>
-                    <button class="btn-primary" id="btnDownloadCsv">
-                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                            <path d="M9 2V12M5 8L9 12L13 8M3 15H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Tải CSV
+
+                <!-- Results -->
+                <div id="resultsSection" style="display:none">
+                    <div class="results-head">
+                        <h3 class="section-label">Kết quả</h3>
+                        <div class="stat-row">
+                            <span class="stat-pill" id="statSegments"></span>
+                            <span class="stat-pill" id="statMatch"></span>
+                        </div>
+                    </div>
+                    <div class="results-actions">
+                        <button class="btn-primary" id="btnDownloadAll">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2V10.5M4.5 7L8 10.5L11.5 7M3 13.5H13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Tải tất cả (ZIP)
+                        </button>
+                        <span class="hint-text" id="downloadHint"></span>
+                    </div>
+                    <div class="segments-list" id="segmentsList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ TAB 2: CSV DATASET ============ -->
+        <div class="tab-panel" id="panel-csv">
+            <div class="card">
+                <div class="card-head">
+                    <h2>Tạo CSV Dataset</h2>
+                    <p class="card-desc">Tạo file CSV dataset cho Piper TTS với format: <code class="code-pill">audio_XXXX.wav|voicename|text</code></p>
+                </div>
+
+                <!-- Input method tabs -->
+                <div class="sub-tabs">
+                    <button class="sub-tab active" id="tabBtnFile">
+                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1V8M4 5.5L6.5 8L9 5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 9V11.5C1 11.8 1.2 12 1.5 12H11.5C11.8 12 12 11.8 12 11.5V9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                        Tải file TXT
+                    </button>
+                    <button class="sub-tab" id="tabBtnText">
+                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3H11M2 5.5H9.5M2 8H11M2 10.5H7.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+                        Nhập text
                     </button>
                 </div>
+
+                <!-- File upload -->
+                <div class="csv-tab-content" id="tabFile">
+                    <div class="drop-zone drop-zone-sm" id="txtUploadZone">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="6" y="3" width="20" height="26" rx="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M11 11H21M11 15H21M11 19H17" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.4"/></svg>
+                        <p class="drop-main">Kéo thả hoặc nhấn để chọn file <strong>.txt</strong></p>
+                        <p class="drop-sub">Mỗi dòng = 1 câu text</p>
+                    </div>
+                    <input type="file" id="txtFileInput" accept=".txt,text/plain" hidden>
+                    <div class="file-status" id="txtFileStatus"></div>
+                </div>
+
+                <!-- Textarea input -->
+                <div class="csv-tab-content" id="tabText" style="display:none">
+                    <textarea class="text-input" id="textAreaInput" placeholder="Nhập text ở đây, mỗi dòng một câu...&#10;Ví dụ:&#10;Xin chào, đây là dòng thứ nhất&#10;Đây là dòng thứ hai" rows="7"></textarea>
+                    <div class="text-footer"><span class="count-label" id="textAreaCount">0 dòng hợp lệ</span></div>
+                </div>
+
+                <!-- Config -->
+                <div class="grid-2 mt-20">
+                    <div class="field-card">
+                        <label for="voiceNameInput">Tên Voice</label>
+                        <div class="input-wrap">
+                            <input type="text" id="voiceNameInput" placeholder="Ví dụ: ngochuyen" autocomplete="off">
+                        </div>
+                        <p class="field-hint">Tên voice sẽ xuất hiện ở cột thứ 2 trong CSV</p>
+                    </div>
+                    <div class="field-card summary-card">
+                        <div class="summary-label">Số dòng hợp lệ</div>
+                        <div class="summary-value">
+                            <span class="line-badge" id="lineCountBadge" style="display:none">0 dòng</span>
+                            <span class="summary-empty" id="lineCountEmpty">Chưa có dữ liệu</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-center">
+                    <button class="btn-primary" id="btnGenerateCsv" disabled>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 2.5H10L13.5 6V13.5H2.5V2.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M10 2.5V6H13.5" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+                        Tạo CSV Dataset
+                    </button>
+                </div>
+
+                <!-- Preview -->
+                <div class="preview-box" id="csvPreviewSection" style="display:none">
+                    <h3 class="section-label">Xem trước CSV</h3>
+                    <div class="preview-table">
+                        <div class="preview-header">
+                            <span class="pcol pcol-audio">File Audio</span>
+                            <span class="pcol-sep">|</span>
+                            <span class="pcol pcol-voice">Voice</span>
+                            <span class="pcol-sep">|</span>
+                            <span class="pcol pcol-text">Text</span>
+                        </div>
+                        <div class="preview-body" id="csvPreviewBody"></div>
+                    </div>
+                    <div class="preview-footer">
+                        <span class="preview-total" id="csvPreviewTotal"></span>
+                        <button class="btn-primary" id="btnDownloadCsv">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2V10.5M4.5 7L8 10.5L11.5 7M3 13.5H13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Tải CSV
+                        </button>
+                    </div>
+                </div>
             </div>
-        </section>
+        </div>
+
+        <!-- ============ TAB 3: TAG NUMBER ============ -->
+        <div class="tab-panel" id="panel-tagger">
+            <div class="card">
+                <div class="card-head">
+                    <h2>Thêm thẻ số vào văn bản</h2>
+                    <p class="card-desc">Nhập nội dung và số — mỗi dòng sẽ được gắn thẻ <code class="code-pill">&lt;#N#&gt;</code> vào cuối</p>
+                </div>
+
+                <div class="tagger-row">
+                    <div class="tagger-text-col">
+                        <label for="taggerInput">Nội dung</label>
+                        <textarea class="text-input" id="taggerInput" placeholder="Xin chào.&#10;Tôi là Minh" rows="7"></textarea>
+                    </div>
+                    <div class="tagger-num-col">
+                        <label for="taggerNum">Số</label>
+                        <input type="number" class="num-input" id="taggerNum" value="5" min="0">
+                        <div class="tag-preview-label">Thẻ: <code class="code-pill" id="tagDisplay">&lt;#5#&gt;</code></div>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn-primary" id="btnConvertTag">Chuyển đổi</button>
+                    <button class="btn-outline" id="btnResetTag">Xóa</button>
+                </div>
+
+                <div id="taggerResult" style="display:none">
+                    <label>Kết quả</label>
+                    <div class="result-box">
+                        <pre class="result-pre" id="taggerResultText"></pre>
+                        <button class="btn-copy" id="btnCopyTag">Sao chép</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
